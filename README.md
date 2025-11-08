@@ -1,2 +1,2 @@
 # McMod
-MineCraft Mod
+Minecraft Mod
