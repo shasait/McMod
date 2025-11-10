@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "de.hasait.mcmod.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"VillagerTaskListProviderMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
