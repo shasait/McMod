@@ -52,7 +52,7 @@ public class RepairGolemTask extends MultiTickTask<VillagerEntity> {
             float healthLimit = candidate.getMaxHealth() * START_HEAL_IF_MAX_HEALTH_PERCENTAGE / 100.0F;
             Item candidateActionItem = determineActionItemIfSuitable(candidate, healthLimit);
             if (candidateActionItem != null) {
-                float distance = villager.distanceTo(target);
+                float distance = villager.distanceTo(candidate);
                 if (minDistance == null || distance < minDistance) {
                     minDistance = distance;
                     this.target = candidate;
