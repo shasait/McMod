@@ -54,8 +54,8 @@ public class RepairGolemTask extends AbstractTargetEntityActionTask<GolemEntity,
         villager.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
     }
 
-    protected RepairGolemTaskContext determineTargetContextIfRunnable(ServerWorld world, VillagerEntity villager, GolemEntity candidate, boolean startActionCheck) {
-        LOGGER.debug("RepairGolemTask.determineActionItemIfSuitable: {}", candidate);
+    protected RepairGolemTaskContext createTargetContextIfSuitable(ServerWorld world, VillagerEntity villager, GolemEntity candidate, boolean startActionCheck) {
+        LOGGER.debug("RepairGolemTask.createTargetContextIfSuitable: {}", candidate);
         if (candidate == null) {
             return null;
         }
@@ -63,7 +63,7 @@ public class RepairGolemTask extends AbstractTargetEntityActionTask<GolemEntity,
         float health = candidate.getHealth();
         float candidateMaxHealth = candidate.getMaxHealth();
         float startActionHealthLimit = startActionCheck ? candidateMaxHealth * McMod.CONFIG.getRepairGolemStartHealthPercentage() / 100.0F : candidateMaxHealth;
-        LOGGER.debug("RepairGolemTask.determineActionItemIfSuitable: Type={} Health={}/{}", type, health, startActionHealthLimit);
+        LOGGER.debug("RepairGolemTask.createTargetContextIfSuitable: Type={} Health={}/{}", type, health, startActionHealthLimit);
         if (!candidate.isAlive() || health >= startActionHealthLimit) {
             return null;
         }
