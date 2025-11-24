@@ -54,23 +54,34 @@ public class RepairGolemTask extends AbstractTargetEntityActionTask<GolemEntity,
         villager.equipStack(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
     }
 
+    @Override
+    protected boolean checkIfSuitableTargetQuick(ServerWorld world, VillagerEntity villager, GolemEntity candidate, boolean startActionCheck) {
+        LOGGER.debug("RepairGolemTask.checkIfSuitableTargetQuick: {}", candidate);
+        if (candidate == null) {
+            return false;
+        }
+        EntityType<?> type = candidate.getType();
+        float health = candidate.getHealth();
+        float candidateMaxHealth = candidate.getMaxHealth();
+        float startActionHealthLimit = startActionCheck ? candidateMaxHealth * McMod.CONFIG.getRepairGolemStartHealthPercentage() / 100.0F : candidateMaxHealth;
+        LOGGER.debug("RepairGolemTask.checkIfSuitableTargetQuick: Type={} Health={}/{}", type, health, startActionHealthLimit);
+        if (!candidate.isAlive() || health >= startActionHealthLimit) {
+            return false;
+        }
+        return true;
+    }
+
     protected RepairGolemTaskContext createTargetContextIfSuitable(ServerWorld world, VillagerEntity villager, GolemEntity candidate, boolean startActionCheck) {
         LOGGER.debug("RepairGolemTask.createTargetContextIfSuitable: {}", candidate);
         if (candidate == null) {
             return null;
         }
         EntityType<?> type = candidate.getType();
-        float health = candidate.getHealth();
-        float candidateMaxHealth = candidate.getMaxHealth();
-        float startActionHealthLimit = startActionCheck ? candidateMaxHealth * McMod.CONFIG.getRepairGolemStartHealthPercentage() / 100.0F : candidateMaxHealth;
-        LOGGER.debug("RepairGolemTask.createTargetContextIfSuitable: Type={} Health={}/{}", type, health, startActionHealthLimit);
-        if (!candidate.isAlive() || health >= startActionHealthLimit) {
-            return null;
-        }
         Item actionItem = TARGET_TYPE_TO_ACTION_ITEM.get(type);
         if (actionItem == null) {
             return null;
         }
+        float candidateMaxHealth = candidate.getMaxHealth();
         return new RepairGolemTaskContext(actionItem, Math.max(1.0F, candidateMaxHealth * McMod.CONFIG.getRepairGolemHealthStepPercentage() / 100.0F));
     }
 

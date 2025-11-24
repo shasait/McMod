@@ -49,13 +49,15 @@ public abstract class AbstractTargetEntityActionTask<T extends Entity, TC> exten
         // select candidate closest to villager
         Float minDistance = null;
         for (T candidate : candidates) {
-            float distance = villager.distanceTo(candidate);
-            if (minDistance == null || distance < minDistance) {
-                TC candidateContext = createTargetContextIfSuitable(world, villager, candidate, true);
-                if (candidateContext != null) {
-                    minDistance = distance;
-                    target = candidate;
-                    targetContext = candidateContext;
+            if (checkIfSuitableTargetQuick(world, villager, candidate, true)) {
+                float distance = villager.distanceTo(candidate);
+                if (minDistance == null || distance < minDistance) {
+                    TC candidateContext = createTargetContextIfSuitable(world, villager, candidate, true);
+                    if (candidateContext != null) {
+                        minDistance = distance;
+                        target = candidate;
+                        targetContext = candidateContext;
+                    }
                 }
             }
         }
@@ -73,6 +75,9 @@ public abstract class AbstractTargetEntityActionTask<T extends Entity, TC> exten
     @Override
     protected final boolean shouldKeepRunning(ServerWorld world, VillagerEntity villager, long time) {
         LOGGER.debug("shouldKeepRunning");
+        if (!checkIfSuitableTargetQuick(world, villager, target, false)) {
+            return false;
+        }
         return createTargetContextIfSuitable(world, villager, target, false) != null;
     }
 
@@ -106,7 +111,14 @@ public abstract class AbstractTargetEntityActionTask<T extends Entity, TC> exten
     protected abstract List<T> findTargetCandidates(ServerWorld world, VillagerEntity villager);
 
     /**
+     * Check if candidate is most likely a suitable target.
+     * Expensive checks can be executed in {@link #createTargetContextIfSuitable}.
+     */
+    protected abstract boolean checkIfSuitableTargetQuick(ServerWorld world, VillagerEntity villager, T candidate, boolean startActionCheck);
+
+    /**
      * Check if candidate matches and is a suitable target - if so return a new target context - else return null.
+     * Checks of #checkIfSuitableTargetQuick are not needed to be checked again.
      */
     protected abstract TC createTargetContextIfSuitable(ServerWorld world, VillagerEntity villager, T candidate, boolean startActionCheck);
 
