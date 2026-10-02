@@ -35,16 +35,16 @@ public class RepairGolemBehavior extends AbstractVillagerTargetEntityBehavior<Ab
 
     @Override
     protected void executeActionInRange(ServerLevel level, Villager villager, long time, AbstractGolem target, RepairGolemBehaviorContext targetContext) {
-        villagerEquipItem(villager, targetContext.actionItem, EquipmentSlot.MAINHAND);
+        villagerEquipItem(villager, targetContext.actionItem(), EquipmentSlot.MAINHAND);
         villager.swing(InteractionHand.MAIN_HAND);
-        target.heal(targetContext.healAmount);
+        target.heal(targetContext.healAmount());
         float pitch = 5.0F + (target.getRandom().nextFloat() - target.getRandom().nextFloat()) * 0.2F;
         target.playSound(SoundEvents.IRON_GOLEM_REPAIR, 0.5F, pitch);
     }
 
     @Override
     protected void executeActionOutOfRange(ServerLevel level, Villager villager, long time, AbstractGolem target, RepairGolemBehaviorContext targetContext) {
-        villagerEquipItem(villager, targetContext.actionItem, EquipmentSlot.MAINHAND);
+        villagerEquipItem(villager, targetContext.actionItem(), EquipmentSlot.MAINHAND);
     }
 
     @Override
