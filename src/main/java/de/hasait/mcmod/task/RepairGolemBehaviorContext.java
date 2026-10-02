@@ -1,12 +1,12 @@
 package de.hasait.mcmod.task;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 
-public class RepairGolemTaskContext {
+public class RepairGolemBehaviorContext {
     public final Item actionItem;
     public final float healAmount;
 
-    public RepairGolemTaskContext(Item actionItem, float healAmount) {
+    public RepairGolemBehaviorContext(Item actionItem, float healAmount) {
         this.actionItem = actionItem;
         this.healAmount = healAmount;
     }
