@@ -37,9 +37,10 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
 
     @Override
     protected final boolean checkExtraStartConditions(ServerLevel level, Villager villager) {
-        LOGGER.debug("checkExtraStartConditions");
+        LOGGER.debug("checkExtraStartConditions: villager={}", villager.position());
         List<T> candidates = findTargetCandidates(level, villager);
         if (candidates.isEmpty()) {
+            LOGGER.debug("false: no candidates");
             return false;
         }
 
@@ -67,19 +68,20 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
         }
 
         // minDistance is only set if we found a target
+        LOGGER.debug("minDistance={}", minDistance);
         return minDistance != null && super.checkExtraStartConditions(level, villager);
     }
 
     @Override
     protected final void start(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("start");
+        LOGGER.debug("start: villager={}", villager.position());
         super.start(level, villager, timestamp);
         executeActionThrottled(level, villager, timestamp);
     }
 
     @Override
     protected final boolean canStillUse(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("canStillUse");
+        LOGGER.debug("canStillUse: villager={}", villager.position());
         if (!checkIfSuitableTargetQuick(level, villager, target, false)) {
             return false;
         }
@@ -88,14 +90,14 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
 
     @Override
     protected final void tick(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("tick");
+        LOGGER.debug("tick: villager={}", villager.position());
         super.tick(level, villager, timestamp);
         this.executeActionThrottled(level, villager, timestamp);
     }
 
     @Override
     protected final void stop(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("stop");
+        LOGGER.debug("stop: villager={}", villager.position());
         finishAction(level, villager, timestamp, target, targetContext);
         target = null;
         targetContext = null;
@@ -103,7 +105,7 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
     }
 
     protected final void executeActionThrottled(ServerLevel level, Villager villager, long time) {
-        LOGGER.debug("executeAction: ticksToNextAction={}", ticksToNextAction);
+        LOGGER.debug("executeAction: villager={} ticksToNextAction={}", villager.position(), ticksToNextAction);
         villager.getNavigation().moveTo(target, 0.5);
         if (villager.distanceTo(target) <= maxActionDistance) {
             if (ticksToNextAction-- <= 0) {

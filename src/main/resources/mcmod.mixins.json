@@ -3,7 +3,7 @@
   "package": "de.hasait.mcmod.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "VillagerTaskListProviderMixin"
+    "VillagerGoalPackagesMixin"
   ],
   "injectors": {
     "defaultRequire": 1

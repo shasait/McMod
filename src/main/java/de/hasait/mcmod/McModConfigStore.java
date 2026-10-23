@@ -10,11 +10,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class McModConfigStore {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(McModConfigStore.class);
+    private static final Logger LOGGER = McMod.LOGGER;
 
     private final File configFile;
     private final McModConfig config;

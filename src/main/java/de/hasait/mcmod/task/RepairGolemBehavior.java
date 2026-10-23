@@ -13,6 +13,7 @@ import net.minecraft.world.entity.animal.golem.AbstractGolem;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.SwingAnimation;
 import org.slf4j.Logger;
 
 import de.hasait.mcmod.McMod;
@@ -36,7 +37,7 @@ public class RepairGolemBehavior extends AbstractVillagerTargetEntityBehavior<Ab
     @Override
     protected void executeActionInRange(ServerLevel level, Villager villager, long time, AbstractGolem target, RepairGolemBehaviorContext targetContext) {
         villagerEquipItem(villager, targetContext.actionItem(), EquipmentSlot.MAINHAND);
-        villager.swing(InteractionHand.MAIN_HAND);
+        villager.swing(InteractionHand.MAIN_HAND, SwingAnimation.DEFAULT);
         target.heal(targetContext.healAmount());
         float pitch = 5.0F + (target.getRandom().nextFloat() - target.getRandom().nextFloat()) * 0.2F;
         target.playSound(SoundEvents.IRON_GOLEM_REPAIR, 0.5F, pitch);
@@ -54,24 +55,27 @@ public class RepairGolemBehavior extends AbstractVillagerTargetEntityBehavior<Ab
 
     @Override
     protected boolean checkIfSuitableTargetQuick(ServerLevel level, Villager villager, AbstractGolem candidate, boolean startActionCheck) {
-        LOGGER.debug("RepairGolemTask.checkIfSuitableTargetQuick: {}", candidate);
+        LOGGER.debug("RepairGolemBehavior.checkIfSuitableTargetQuick: {}", candidate);
         if (candidate == null) {
             return false;
         }
-        EntityType<?> type = candidate.getType();
         float health = candidate.getHealth();
         float candidateMaxHealth = candidate.getMaxHealth();
         float startActionHealthLimit = startActionCheck ? candidateMaxHealth * McMod.CONFIG.getRepairGolemStartHealthPercentage() / 100.0F : candidateMaxHealth;
-        LOGGER.debug("RepairGolemTask.checkIfSuitableTargetQuick: Type={} Health={}/{}", type, health, startActionHealthLimit);
-        if (!candidate.isAlive() || health >= startActionHealthLimit) {
+        if (!candidate.isAlive()) {
+            LOGGER.debug("false: already dead");
+            return false;
+        } else if (health > startActionHealthLimit) {
+            LOGGER.debug("false: {} (current health) > {} (start action health)", health, startActionHealthLimit);
             return false;
         }
+        LOGGER.debug("true: {} (current health) <= {} (start action health)", health, startActionHealthLimit);
         return true;
     }
 
     @Override
     protected RepairGolemBehaviorContext createTargetContextIfSuitable(ServerLevel level, Villager villager, AbstractGolem candidate, boolean startActionCheck) {
-        LOGGER.debug("RepairGolemTask.createTargetContextIfSuitable: {}", candidate);
+        LOGGER.debug("RepairGolemBehavior.createTargetContextIfSuitable: {}", candidate);
         if (candidate == null) {
             return null;
         }
