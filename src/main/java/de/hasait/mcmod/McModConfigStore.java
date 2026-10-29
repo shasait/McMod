@@ -38,6 +38,11 @@ public class McModConfigStore {
                 loadDouble(json, "repairGolemScanZ", config::setRepairGolemScanZ, 0.0, 50.0);
                 loadFloat(json, "repairGolemStartHealthPercentage", config::setRepairGolemStartHealthPercentage, 0.0F, 100.0F);
                 loadFloat(json, "repairGolemHealthStepPercentage", config::setRepairGolemHealthStepPercentage, 0.1F, 100.0F);
+                loadDouble(json, "healVillagerScanX", config::setHealVillagerScanX, 0.0, 50.0);
+                loadDouble(json, "healVillagerScanY", config::setHealVillagerScanY, 0.0, 50.0);
+                loadDouble(json, "healVillagerScanZ", config::setHealVillagerScanZ, 0.0, 50.0);
+                loadFloat(json, "healVillagerStartHealthPercentage", config::setHealVillagerStartHealthPercentage, 0.0F, 100.0F);
+                loadFloat(json, "healVillagerHealthStepPercentage", config::setHealVillagerHealthStepPercentage, 0.1F, 100.0F);
                 LOGGER.info("Config {} loaded", configFile);
             } catch (IOException e) {
                 LOGGER.error("Loading config {} failed - using defaults", configFile, e);
@@ -61,6 +66,11 @@ public class McModConfigStore {
             json.addProperty("repairGolemScanZ", config.getRepairGolemScanZ());
             json.addProperty("repairGolemStartHealthPercentage", config.getRepairGolemStartHealthPercentage());
             json.addProperty("repairGolemHealthStepPercentage", config.getRepairGolemHealthStepPercentage());
+            json.addProperty("healVillagerScanX", config.getHealVillagerScanX());
+            json.addProperty("healVillagerScanY", config.getHealVillagerScanY());
+            json.addProperty("healVillagerScanZ", config.getHealVillagerScanZ());
+            json.addProperty("healVillagerStartHealthPercentage", config.getHealVillagerStartHealthPercentage());
+            json.addProperty("healVillagerHealthStepPercentage", config.getHealVillagerHealthStepPercentage());
 
             try (FileWriter writer = new FileWriter(configFile)) {
                 gson.toJson(json, writer);

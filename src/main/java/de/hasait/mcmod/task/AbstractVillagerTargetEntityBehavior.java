@@ -1,13 +1,16 @@
 package de.hasait.mcmod.task;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.behavior.Behavior;
 import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
 
     private static final Logger LOGGER = McMod.LOGGER;
 
+    private final Collection<ResourceKey<VillagerProfession>> professions;
     private final int ticksToNextActionBase;
     private final int ticksToNextActionRandom;
 
@@ -27,9 +31,10 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
     private TC targetContext;
     private int ticksToNextAction;
 
-    public AbstractVillagerTargetEntityBehavior(int ticksToNextActionBase, int ticksToNextActionRandom, float maxActionDistance) {
-        super(Map.of());
+    public AbstractVillagerTargetEntityBehavior(Collection<ResourceKey<VillagerProfession>> professions, int timeoutTicks, int ticksToNextActionBase, int ticksToNextActionRandom, float maxActionDistance) {
+        super(Map.of(), timeoutTicks);
 
+        this.professions = professions;
         this.ticksToNextActionBase = ticksToNextActionBase;
         this.ticksToNextActionRandom = ticksToNextActionRandom;
         this.maxActionDistance = maxActionDistance;
@@ -37,17 +42,24 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
 
     @Override
     protected final boolean checkExtraStartConditions(ServerLevel level, Villager villager) {
-        LOGGER.debug("checkExtraStartConditions: villager={}", villager.position());
+        var logMsgPrefix = logMethodEntry("checkExtraStartConditions", villager);
+
+        var profession = villager.getVillagerData().profession();
+        if (professions.stream().noneMatch(profession::is)) {
+            LOGGER.debug("-> false: unsupported profession={}", profession);
+            return false;
+        }
+
         List<T> candidates = findTargetCandidates(level, villager);
         if (candidates.isEmpty()) {
-            LOGGER.debug("false: no candidates");
+            LOGGER.debug("-> false: no candidates");
             return false;
         }
 
         // prevent target re-assignment
         // TODO this should actually not happen if start and stop works correctly
         if (target != null && candidates.contains(target)) {
-            LOGGER.warn("BUG? Prevented target re-assignment");
+            LOGGER.warn("{}: BUG? Prevented target re-assignment", logMsgPrefix);
             return super.checkExtraStartConditions(level, villager);
         }
 
@@ -68,44 +80,59 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
         }
 
         // minDistance is only set if we found a target
-        LOGGER.debug("minDistance={}", minDistance);
-        return minDistance != null && super.checkExtraStartConditions(level, villager);
+        if (minDistance == null) {
+            LOGGER.debug("-> false: no target");
+            return false;
+        }
+        if (!super.checkExtraStartConditions(level, villager)) {
+            LOGGER.debug("-> false: checkExtraStartConditions");
+            target = null;
+            targetContext = null;
+            return false;
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("-> true: minDistance={}, target={}", minDistance, target);
+        } else {
+            LOGGER.info("{} -> true: villager={}, minDistance={}, target={}", logMsgPrefix, villager, minDistance, target);
+        }
+        return true;
     }
 
     @Override
     protected final void start(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("start: villager={}", villager.position());
+        logMethodEntry("start", villager);
         super.start(level, villager, timestamp);
         executeActionThrottled(level, villager, timestamp);
     }
 
     @Override
     protected final boolean canStillUse(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("canStillUse: villager={}", villager.position());
+        logMethodEntry("canStillUse", villager);
         if (!checkIfSuitableTargetQuick(level, villager, target, false)) {
             return false;
         }
-        return createTargetContextIfSuitable(level, villager, target, false) != null && super.canStillUse(level, villager, timestamp);
+        return createTargetContextIfSuitable(level, villager, target, false) != null;
     }
 
     @Override
     protected final void tick(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("tick: villager={}", villager.position());
+        logMethodEntry("tick", villager);
         super.tick(level, villager, timestamp);
         this.executeActionThrottled(level, villager, timestamp);
     }
 
     @Override
     protected final void stop(ServerLevel level, Villager villager, long timestamp) {
-        LOGGER.debug("stop: villager={}", villager.position());
+        logMethodEntry("stop", villager);
         finishAction(level, villager, timestamp, target, targetContext);
         target = null;
         targetContext = null;
+        ticksToNextAction = 0;
         super.stop(level, villager, timestamp);
     }
 
     protected final void executeActionThrottled(ServerLevel level, Villager villager, long time) {
-        LOGGER.debug("executeAction: villager={} ticksToNextAction={}", villager.position(), ticksToNextAction);
+        logMethodEntry("executeActionThrottled", villager);
         villager.getNavigation().moveTo(target, 0.5);
         if (villager.distanceTo(target) <= maxActionDistance) {
             if (ticksToNextAction-- <= 0) {
@@ -140,6 +167,12 @@ public abstract class AbstractVillagerTargetEntityBehavior<T extends Entity, TC>
     protected final void villagerEquipItem(Villager villager, Item item, EquipmentSlot slot) {
         ItemStack newItemStack = item != null ? new ItemStack(item) : ItemStack.EMPTY;
         villager.setItemSlot(slot, newItemStack);
+    }
+
+    protected final String logMethodEntry(String methodName, Villager villager) {
+        var logMsgPrefix = getClass().getSimpleName() + "." + methodName;
+        LOGGER.debug("{}: villager={}", logMsgPrefix, villager);
+        return logMsgPrefix;
     }
 
 }

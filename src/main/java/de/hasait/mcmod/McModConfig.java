@@ -2,12 +2,19 @@ package de.hasait.mcmod;
 
 public class McModConfig {
 
-    private float repairGolemStartHealthPercentage = 75.0F;
+    private float repairGolemStartHealthPercentage = 99.0F;
     private float repairGolemHealthStepPercentage = 5.0f;
 
     private double repairGolemScanX = 15.00;
-    private double repairGolemScanY = 5.00;
+    private double repairGolemScanY = 10.00;
     private double repairGolemScanZ = 15.00;
+
+    private float healVillagerStartHealthPercentage = 99.0F;
+    private float healVillagerHealthStepPercentage = 5.0f;
+
+    private double healVillagerScanX = 15.00;
+    private double healVillagerScanY = 10.00;
+    private double healVillagerScanZ = 15.00;
 
     public float getRepairGolemStartHealthPercentage() {
         return repairGolemStartHealthPercentage;
@@ -47,6 +54,46 @@ public class McModConfig {
 
     public void setRepairGolemScanZ(double repairGolemScanZ) {
         this.repairGolemScanZ = repairGolemScanZ;
+    }
+
+    public float getHealVillagerStartHealthPercentage() {
+        return healVillagerStartHealthPercentage;
+    }
+
+    public void setHealVillagerStartHealthPercentage(float healVillagerStartHealthPercentage) {
+        this.healVillagerStartHealthPercentage = healVillagerStartHealthPercentage;
+    }
+
+    public float getHealVillagerHealthStepPercentage() {
+        return healVillagerHealthStepPercentage;
+    }
+
+    public void setHealVillagerHealthStepPercentage(float healVillagerHealthStepPercentage) {
+        this.healVillagerHealthStepPercentage = healVillagerHealthStepPercentage;
+    }
+
+    public double getHealVillagerScanX() {
+        return healVillagerScanX;
+    }
+
+    public void setHealVillagerScanX(double healVillagerScanX) {
+        this.healVillagerScanX = healVillagerScanX;
+    }
+
+    public double getHealVillagerScanY() {
+        return healVillagerScanY;
+    }
+
+    public void setHealVillagerScanY(double healVillagerScanY) {
+        this.healVillagerScanY = healVillagerScanY;
+    }
+
+    public double getHealVillagerScanZ() {
+        return healVillagerScanZ;
+    }
+
+    public void setHealVillagerScanZ(double healVillagerScanZ) {
+        this.healVillagerScanZ = healVillagerScanZ;
     }
 
 }
