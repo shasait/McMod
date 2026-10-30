@@ -14,23 +14,27 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import de.hasait.mcmod.McMod;
 import de.hasait.mcmod.task.HealVillagerBehavior;
 import de.hasait.mcmod.task.RepairGolemBehavior;
 
 @Mixin(VillagerGoalPackages.class)
 public class VillagerGoalPackagesMixin {
 
-    private static final Logger LOGGER = McMod.LOGGER;
-
-    private static final List<ResourceKey<VillagerProfession>> REPAIR_GOLEM_PROFESSIONS = List.of(VillagerProfession.TOOLSMITH, VillagerProfession.WEAPONSMITH, VillagerProfession.ARMORER);
-    private static final Map<ResourceKey<VillagerProfession>, Item> HEAL_VILLAGER_PROFESSIONS = Map.of(VillagerProfession.FARMER, Items.BREAD, VillagerProfession.FISHERMAN, Items.COOKED_SALMON);
+    private static final List<ResourceKey<VillagerProfession>> REPAIR_GOLEM_PROFESSIONS = List.of( //
+            VillagerProfession.TOOLSMITH, //
+            VillagerProfession.WEAPONSMITH, //
+            VillagerProfession.ARMORER //
+    );
+    private static final Map<ResourceKey<VillagerProfession>, Item> HEAL_VILLAGER_PROFESSIONS = Map.of( //
+            VillagerProfession.FARMER, Items.BREAD, //
+            VillagerProfession.FISHERMAN, Items.COOKED_SALMON, //
+            VillagerProfession.CLERIC, Items.POTION //
+    );
 
     @Inject(method = "getWorkPackage", cancellable = true, at = @At("RETURN"))
     private static void mcmod$getWorkPackage(Holder<VillagerProfession> profession, float speed, CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends BehaviorControl<? super Villager>>>> cir) {
@@ -49,7 +53,7 @@ public class VillagerGoalPackagesMixin {
     @Inject(method = "getMeetPackage", cancellable = true, at = @At("RETURN"))
     private static void mcmod$getMeetPackage(float speed, CallbackInfoReturnable<ImmutableList<Pair<Integer, ? extends BehaviorControl<? super Villager>>>> cir) {
         List<Pair<Integer, ? extends BehaviorControl<? super Villager>>> villagerList = new ArrayList<>(cir.getReturnValue());
-        villagerList.add(Pair.of(2, new HealVillagerBehavior(HEAL_VILLAGER_PROFESSIONS)));
+        villagerList.add(Pair.of(12, new HealVillagerBehavior(HEAL_VILLAGER_PROFESSIONS)));
         cir.setReturnValue(ImmutableList.copyOf(villagerList));
     }
 }
