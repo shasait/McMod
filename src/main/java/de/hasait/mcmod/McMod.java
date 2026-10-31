@@ -30,5 +30,8 @@ public class McMod implements ModInitializer {
         LOGGER.info("Initializing server...");
 
         CONFIG_STORE.load();
+
+        McModConfigNetworking.registerPayloads();
+        McModConfigNetworking.registerServerHandlers();
     }
 }
