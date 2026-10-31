@@ -20,6 +20,9 @@
     ],
     "client": [
       "de.hasait.mcmod.client.McModClient"
+    ],
+    "modmenu": [
+      "de.hasait.mcmod.client.McModMenuIntegration"
     ]
   },
   "mixins": [
@@ -34,5 +37,8 @@
     "minecraft": "~26.3",
     "java": ">=25",
     "fabric-api": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
   }
 }
