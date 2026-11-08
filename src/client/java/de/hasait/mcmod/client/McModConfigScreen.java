@@ -13,7 +13,8 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 
 import de.hasait.mcmod.McMod;
-import de.hasait.mcmod.McModConfig;
+import de.hasait.mcmod.config.McModConfig;
+import de.hasait.mcmod.config.McModConfigBuilder;
 
 public class McModConfigScreen extends Screen {
 
@@ -26,7 +27,7 @@ public class McModConfigScreen extends Screen {
     private static final int VALID_COLOR = 0xFFE0E0E0;
 
     private final Screen parent;
-    private final McModConfig config;
+    private final McModConfigBuilder configBuilder;
     private final boolean remote;
     private final boolean editable;
     private final List<Entry> entries = new ArrayList<>();
@@ -40,12 +41,11 @@ public class McModConfigScreen extends Screen {
             // edit a copy, it is sent to the server on Done
             remote = true;
             editable = McModClient.isServerConfigEditable();
-            config = new McModConfig();
-            config.copyFrom(serverConfig);
+            configBuilder = new McModConfigBuilder(serverConfig);
         } else {
             remote = false;
             editable = true;
-            config = McMod.CONFIG;
+            configBuilder = new McModConfigBuilder();
         }
     }
 
@@ -65,26 +65,26 @@ public class McModConfigScreen extends Screen {
         top += 14;
 
         int y = top;
-        addInt(leftX, y, "Start Health %", McModConfig.MINI_START_PERCENTAGE, McModConfig.MAXI_START_PERCENTAGE, config::getRepairGolemStartHealthPercentage, config::setRepairGolemStartHealthPercentage);
+        addInt(leftX, y, "Start Health %", McModConfigBuilder.MINI_START_PERCENTAGE, McModConfigBuilder.MAXI_START_PERCENTAGE, configBuilder::getRepairGolemStartHealthPercentage, configBuilder::setRepairGolemStartHealthPercentage);
         y += ROW_HEIGHT;
-        addInt(leftX, y, "Health Step %", McModConfig.MINI_STEP_PERCENTAGE, McModConfig.MAXI_STEP_PERCENTAGE, config::getRepairGolemHealthStepPercentage, config::setRepairGolemHealthStepPercentage);
+        addInt(leftX, y, "Health Step %", McModConfigBuilder.MINI_STEP_PERCENTAGE, McModConfigBuilder.MAXI_STEP_PERCENTAGE, configBuilder::getRepairGolemHealthStepPercentage, configBuilder::setRepairGolemHealthStepPercentage);
         y += ROW_HEIGHT;
-        addInt(leftX, y, "Scan X", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getRepairGolemScanX, config::setRepairGolemScanX);
+        addInt(leftX, y, "Scan X", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getRepairGolemScanX, configBuilder::setRepairGolemScanX);
         y += ROW_HEIGHT;
-        addInt(leftX, y, "Scan Y", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getRepairGolemScanY, config::setRepairGolemScanY);
+        addInt(leftX, y, "Scan Y", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getRepairGolemScanY, configBuilder::setRepairGolemScanY);
         y += ROW_HEIGHT;
-        addInt(leftX, y, "Scan Z", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getRepairGolemScanZ, config::setRepairGolemScanZ);
+        addInt(leftX, y, "Scan Z", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getRepairGolemScanZ, configBuilder::setRepairGolemScanZ);
 
         y = top;
-        addInt(rightX, y, "Start Health %", McModConfig.MINI_START_PERCENTAGE, McModConfig.MAXI_START_PERCENTAGE, config::getHealVillagerStartHealthPercentage, config::setHealVillagerStartHealthPercentage);
+        addInt(rightX, y, "Start Health %", McModConfigBuilder.MINI_START_PERCENTAGE, McModConfigBuilder.MAXI_START_PERCENTAGE, configBuilder::getHealVillagerStartHealthPercentage, configBuilder::setHealVillagerStartHealthPercentage);
         y += ROW_HEIGHT;
-        addInt(rightX, y, "Health Step %", McModConfig.MINI_STEP_PERCENTAGE, McModConfig.MAXI_STEP_PERCENTAGE, config::getHealVillagerHealthStepPercentage, config::setHealVillagerHealthStepPercentage);
+        addInt(rightX, y, "Health Step %", McModConfigBuilder.MINI_STEP_PERCENTAGE, McModConfigBuilder.MAXI_STEP_PERCENTAGE, configBuilder::getHealVillagerHealthStepPercentage, configBuilder::setHealVillagerHealthStepPercentage);
         y += ROW_HEIGHT;
-        addInt(rightX, y, "Scan X", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getHealVillagerScanX, config::setHealVillagerScanX);
+        addInt(rightX, y, "Scan X", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getHealVillagerScanX, configBuilder::setHealVillagerScanX);
         y += ROW_HEIGHT;
-        addInt(rightX, y, "Scan Y", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getHealVillagerScanY, config::setHealVillagerScanY);
+        addInt(rightX, y, "Scan Y", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getHealVillagerScanY, configBuilder::setHealVillagerScanY);
         y += ROW_HEIGHT;
-        addInt(rightX, y, "Scan Z", McModConfig.MINI_SCAN, McModConfig.MAXI_SCAN, config::getHealVillagerScanZ, config::setHealVillagerScanZ);
+        addInt(rightX, y, "Scan Z", McModConfigBuilder.MINI_SCAN, McModConfigBuilder.MAXI_SCAN, configBuilder::getHealVillagerScanZ, configBuilder::setHealVillagerScanZ);
 
         int buttonY = top + 5 * ROW_HEIGHT + 14;
         addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, button -> onDone())
@@ -140,10 +140,11 @@ public class McModConfigScreen extends Screen {
         for (Entry entry : entries) {
             entry.applier.run();
         }
+        McModConfig config = configBuilder.build();
         if (remote) {
             McModClient.sendConfigUpdate(config);
         } else {
-            McMod.CONFIG_STORE.save();
+            McMod.updateConfig(config);
         }
         onClose();
     }

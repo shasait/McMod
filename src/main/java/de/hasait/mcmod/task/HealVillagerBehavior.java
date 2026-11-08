@@ -16,6 +16,7 @@ import net.minecraft.world.item.component.SwingAnimation;
 import org.slf4j.Logger;
 
 import de.hasait.mcmod.McMod;
+import de.hasait.mcmod.config.McModConfig;
 
 public class HealVillagerBehavior extends AbstractVillagerTargetEntityBehavior<Villager, HealVillagerBehaviorContext> {
 
@@ -32,7 +33,8 @@ public class HealVillagerBehavior extends AbstractVillagerTargetEntityBehavior<V
 
     @Override
     protected List<Villager> findTargetCandidates(ServerLevel level, Villager villager) {
-        var scanBox = villager.getBoundingBox().expandTowards(McMod.CONFIG.getHealVillagerScanX(), McMod.CONFIG.getHealVillagerScanY(), McMod.CONFIG.getHealVillagerScanZ());
+        McModConfig config = McMod.getConfig();
+        var scanBox = villager.getBoundingBox().expandTowards(config.getHealVillagerScanX(), config.getHealVillagerScanY(), config.getHealVillagerScanZ());
         return level.getEntitiesOfClass(Villager.class, scanBox);
     }
 
@@ -65,7 +67,8 @@ public class HealVillagerBehavior extends AbstractVillagerTargetEntityBehavior<V
         float health = candidate.getHealth();
         float maxHealth = candidate.getMaxHealth();
         // always repair up to maxHealth
-        float startActionHealthLimit = startActionCheck ? maxHealth * McMod.CONFIG.getHealVillagerStartHealthPercentage() / 100.0F : maxHealth;
+        McModConfig config = McMod.getConfig();
+        float startActionHealthLimit = startActionCheck ? maxHealth * config.getHealVillagerStartHealthPercentage() / 100.0F : maxHealth;
         if (!candidate.isAlive()) {
             LOGGER.debug("-> false: {} already dead", candidate);
             return false;
@@ -104,7 +107,8 @@ public class HealVillagerBehavior extends AbstractVillagerTargetEntityBehavior<V
         } else {
             LOGGER.info("{} -> new context for {}", logMsgPrefix, candidate);
         }
-        return new HealVillagerBehaviorContext(actionItem, Math.max(1.0F, candidateMaxHealth * McMod.CONFIG.getHealVillagerHealthStepPercentage() / 100.0F));
+        McModConfig config = McMod.getConfig();
+        return new HealVillagerBehaviorContext(actionItem, Math.max(1.0F, candidateMaxHealth * config.getHealVillagerHealthStepPercentage() / 100.0F));
     }
 
 }

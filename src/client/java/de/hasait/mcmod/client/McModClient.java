@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import de.hasait.mcmod.McMod;
-import de.hasait.mcmod.McModConfig;
-import de.hasait.mcmod.McModConfigNetworking;
+import de.hasait.mcmod.config.McModConfig;
+import de.hasait.mcmod.config.McModConfigNetworking;
 
 public class McModClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(McMod.MOD_ID);

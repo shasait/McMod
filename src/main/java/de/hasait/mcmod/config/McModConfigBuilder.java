@@ -1,15 +1,26 @@
-package de.hasait.mcmod;
+package de.hasait.mcmod.config;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import com.google.gson.JsonObject;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import org.slf4j.Logger;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
-public class McModConfig {
-
-    private static final Logger LOGGER = McMod.LOGGER;
+/**
+ * Modifiable config which should be used from a single thread.
+ * This is not thread safe.
+ */
+public class McModConfigBuilder {
 
     // Min inclusive
     public static final int MINI_START_PERCENTAGE = 1;
@@ -24,35 +35,75 @@ public class McModConfig {
     // Max inclusive
     public static final int MAXI_SCAN = 30;
 
-    private int repairGolemStartHealthPercentage = 99;
-    private int repairGolemHealthStepPercentage = 5;
+    private static final List<ResourceKey<VillagerProfession>> DEFAULT_repairGolemProfessions = List.of( //
+            VillagerProfession.TOOLSMITH, //
+            VillagerProfession.WEAPONSMITH, //
+            VillagerProfession.ARMORER //
+    );
 
-    private int repairGolemScanX = 15;
-    private int repairGolemScanY = 10;
-    private int repairGolemScanZ = 15;
+    private static final Map<EntityType<?>, Item> DEFAULT_repairGolemActionItems = Map.of(EntityTypes.IRON_GOLEM, Items.IRON_INGOT, EntityTypes.COPPER_GOLEM, Items.COPPER_INGOT);
 
-    private int healVillagerStartHealthPercentage = 99;
-    private int healVillagerHealthStepPercentage = 5;
+    private static final Map<ResourceKey<VillagerProfession>, Item> DEFAULT_healVillagerProfessions = Map.of( //
+            VillagerProfession.FARMER, Items.BREAD, //
+            VillagerProfession.FISHERMAN, Items.COOKED_SALMON, //
+            VillagerProfession.CLERIC, Items.POTION //
+    );
 
-    private int healVillagerScanX = 15;
-    private int healVillagerScanY = 10;
-    private int healVillagerScanZ = 15;
+    private final List<ResourceKey<VillagerProfession>> repairGolemProfessions;
 
-    public McModConfig copyFrom(McModConfig other) {
-        repairGolemStartHealthPercentage = other.repairGolemStartHealthPercentage;
-        repairGolemHealthStepPercentage = other.repairGolemHealthStepPercentage;
-        repairGolemScanX = other.repairGolemScanX;
-        repairGolemScanY = other.repairGolemScanY;
-        repairGolemScanZ = other.repairGolemScanZ;
-        healVillagerStartHealthPercentage = other.healVillagerStartHealthPercentage;
-        healVillagerHealthStepPercentage = other.healVillagerHealthStepPercentage;
-        healVillagerScanX = other.healVillagerScanX;
-        healVillagerScanY = other.healVillagerScanY;
-        healVillagerScanZ = other.healVillagerScanZ;
-        return this;
+    private final Map<EntityType<?>, Item> repairGolemActionItems;
+
+    private int repairGolemStartHealthPercentage;
+    private int repairGolemHealthStepPercentage;
+
+    private int repairGolemScanX;
+    private int repairGolemScanY;
+    private int repairGolemScanZ;
+
+    private final Map<ResourceKey<VillagerProfession>, Item> healVillagerProfessions;
+
+    private int healVillagerStartHealthPercentage;
+    private int healVillagerHealthStepPercentage;
+
+    private int healVillagerScanX;
+    private int healVillagerScanY;
+    private int healVillagerScanZ;
+
+    public McModConfigBuilder() {
+        repairGolemProfessions = new ArrayList<>(DEFAULT_repairGolemProfessions);
+        repairGolemActionItems = new LinkedHashMap<>(DEFAULT_repairGolemActionItems);
+        repairGolemStartHealthPercentage = 99;
+        repairGolemHealthStepPercentage = 5;
+        repairGolemScanX = 15;
+        repairGolemScanY = 10;
+        repairGolemScanZ = 15;
+
+        healVillagerProfessions = new LinkedHashMap<>(DEFAULT_healVillagerProfessions);
+        healVillagerStartHealthPercentage = 99;
+        healVillagerHealthStepPercentage = 5;
+        healVillagerScanX = 15;
+        healVillagerScanY = 10;
+        healVillagerScanZ = 15;
     }
 
-    public McModConfig fromJson(JsonObject json, List<String> validationMessages) {
+    public McModConfigBuilder(McModConfig config) {
+        repairGolemProfessions = new ArrayList<>(config.getRepairGolemProfessions());
+        repairGolemActionItems = new LinkedHashMap<>(config.getRepairGolemActionItems());
+        repairGolemStartHealthPercentage = config.getRepairGolemStartHealthPercentage();
+        repairGolemHealthStepPercentage = config.getRepairGolemHealthStepPercentage();
+        repairGolemScanX = config.getRepairGolemScanX();
+        repairGolemScanY = config.getRepairGolemScanY();
+        repairGolemScanZ = config.getRepairGolemScanZ();
+
+        healVillagerProfessions = new LinkedHashMap<>(config.getHealVillagerProfessions());
+        healVillagerStartHealthPercentage = config.getHealVillagerStartHealthPercentage();
+        healVillagerHealthStepPercentage = config.getHealVillagerHealthStepPercentage();
+        healVillagerScanX = config.getHealVillagerScanX();
+        healVillagerScanY = config.getHealVillagerScanY();
+        healVillagerScanZ = config.getHealVillagerScanZ();
+    }
+
+    public McModConfigBuilder fromJson(JsonObject json, List<String> validationMessages) {
         loadJsonInt(json, validationMessages, "repairGolemStartHealthPercentage", this::setRepairGolemStartHealthPercentage);
         loadJsonInt(json, validationMessages, "repairGolemHealthStepPercentage", this::setRepairGolemHealthStepPercentage);
         loadJsonInt(json, validationMessages, "repairGolemScanX", this::setRepairGolemScanX);
@@ -66,29 +117,16 @@ public class McModConfig {
         return this;
     }
 
-    public void toJson(JsonObject json) {
-        json.addProperty("repairGolemStartHealthPercentage", getRepairGolemStartHealthPercentage());
-        json.addProperty("repairGolemHealthStepPercentage", getRepairGolemHealthStepPercentage());
-        json.addProperty("repairGolemScanX", getRepairGolemScanX());
-        json.addProperty("repairGolemScanY", getRepairGolemScanY());
-        json.addProperty("repairGolemScanZ", getRepairGolemScanZ());
-        json.addProperty("healVillagerStartHealthPercentage", getHealVillagerStartHealthPercentage());
-        json.addProperty("healVillagerHealthStepPercentage", getHealVillagerHealthStepPercentage());
-        json.addProperty("healVillagerScanX", getHealVillagerScanX());
-        json.addProperty("healVillagerScanY", getHealVillagerScanY());
-        json.addProperty("healVillagerScanZ", getHealVillagerScanZ());
-    }
-
     private static void loadJsonInt(JsonObject json, List<String> validationMessages, String key, Consumer<Integer> setter) {
         if (json.has(key)) {
             int value = json.get(key).getAsInt();
             setter.accept(value);
-        } else {
+        } else if (validationMessages != null) {
             validationMessages.add("Value " + key + " not found - using default");
         }
     }
 
-    public McModConfig fromBuf(RegistryFriendlyByteBuf buf) {
+    public McModConfigBuilder fromBuf(RegistryFriendlyByteBuf buf) {
         setRepairGolemStartHealthPercentage(buf.readInt());
         setRepairGolemHealthStepPercentage(buf.readInt());
         setRepairGolemScanX(buf.readInt());
@@ -100,19 +138,6 @@ public class McModConfig {
         setHealVillagerScanY(buf.readInt());
         setHealVillagerScanZ(buf.readInt());
         return this;
-    }
-
-    public void toBuf(RegistryFriendlyByteBuf buf) {
-        buf.writeInt(getRepairGolemStartHealthPercentage());
-        buf.writeInt(getRepairGolemHealthStepPercentage());
-        buf.writeInt(getRepairGolemScanX());
-        buf.writeInt(getRepairGolemScanY());
-        buf.writeInt(getRepairGolemScanZ());
-        buf.writeInt(getHealVillagerStartHealthPercentage());
-        buf.writeInt(getHealVillagerHealthStepPercentage());
-        buf.writeInt(getHealVillagerScanX());
-        buf.writeInt(getHealVillagerScanY());
-        buf.writeInt(getHealVillagerScanZ());
     }
 
     public boolean isValid(List<String> validationMessages) {
@@ -138,6 +163,21 @@ public class McModConfig {
             validationMessages.add("Value " + key + " = " + value + " out of range [" + minInclusive + "; " + maxInclusive + "]");
         }
         return false;
+    }
+
+    public void validate() {
+        List<String> validationMessages = new ArrayList<>();
+        if (!isValid(validationMessages)) {
+            throw new IllegalArgumentException("builder is invalid: " + validationMessages);
+        }
+    }
+
+    public List<ResourceKey<VillagerProfession>> getRepairGolemProfessions() {
+        return repairGolemProfessions;
+    }
+
+    public Map<EntityType<?>, Item> getRepairGolemActionItems() {
+        return repairGolemActionItems;
     }
 
     public int getRepairGolemStartHealthPercentage() {
@@ -180,6 +220,10 @@ public class McModConfig {
         this.repairGolemScanZ = repairGolemScanZ;
     }
 
+    public Map<ResourceKey<VillagerProfession>, Item> getHealVillagerProfessions() {
+        return healVillagerProfessions;
+    }
+
     public int getHealVillagerStartHealthPercentage() {
         return healVillagerStartHealthPercentage;
     }
@@ -218,6 +262,10 @@ public class McModConfig {
 
     public void setHealVillagerScanZ(int healVillagerScanZ) {
         this.healVillagerScanZ = healVillagerScanZ;
+    }
+
+    public McModConfig build() {
+        return new McModConfig(this);
     }
 
 }

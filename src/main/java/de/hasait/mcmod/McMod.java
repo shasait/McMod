@@ -7,6 +7,11 @@ import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import de.hasait.mcmod.config.McModConfig;
+import de.hasait.mcmod.config.McModConfigBuilder;
+import de.hasait.mcmod.config.McModConfigNetworking;
+import de.hasait.mcmod.config.McModConfigStore;
+
 public class McMod implements ModInitializer {
     public static final String MOD_ID = "mcmod";
 
@@ -15,11 +20,25 @@ public class McMod implements ModInitializer {
     // That way, it's clear which mod wrote info, warnings, and errors.
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-    public static final McModConfig CONFIG = new McModConfig();
-    public static final McModConfigStore CONFIG_STORE = new McModConfigStore("config/mc_mod.json", CONFIG);
+    private static volatile McModConfig CONFIG = new McModConfigBuilder().build();
+
+    private static final McModConfigStore CONFIG_STORE = new McModConfigStore("config/mc_mod.json");
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);
+    }
+
+    public static McModConfig getConfig() {
+        return CONFIG;
+    }
+
+    public static void updateConfig(McModConfig config) {
+        if (config == null) {
+            throw new IllegalArgumentException("Config must not be null");
+        }
+        CONFIG = config;
+        LOGGER.info("Config updated");
+        CONFIG_STORE.save();
     }
 
     @Override
@@ -34,4 +53,5 @@ public class McMod implements ModInitializer {
         McModConfigNetworking.registerPayloads();
         McModConfigNetworking.registerServerHandlers();
     }
+
 }

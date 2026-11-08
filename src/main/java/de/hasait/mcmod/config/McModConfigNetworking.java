@@ -1,4 +1,4 @@
-package de.hasait.mcmod;
+package de.hasait.mcmod.config;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -10,12 +10,17 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
+import org.slf4j.Logger;
+
+import de.hasait.mcmod.McMod;
 
 /**
  * Synchronizes the server config with clients: the server sends its config to every player on join and after each
  * change, and accepts config updates from privileged players.
  */
 public final class McModConfigNetworking {
+
+    private static final Logger LOGGER = McMod.LOGGER;
 
     private McModConfigNetworking() {
     }
@@ -30,7 +35,7 @@ public final class McModConfigNetworking {
                     payload.config().toBuf(buf);
                     buf.writeBoolean(payload.editable());
                 },
-                buf -> new ConfigSyncPayload(new McModConfig().fromBuf(buf), buf.readBoolean())
+                buf -> new ConfigSyncPayload(new McModConfigBuilder().fromBuf(buf).build(), buf.readBoolean())
         );
 
         @Override
@@ -46,7 +51,7 @@ public final class McModConfigNetworking {
         public static final Type<ConfigUpdatePayload> TYPE = new Type<>(McMod.id("config_update"));
         public static final StreamCodec<RegistryFriendlyByteBuf, ConfigUpdatePayload> CODEC = StreamCodec.of(
                 (buf, payload) -> payload.config.toBuf(buf),
-                buf -> new ConfigUpdatePayload(new McModConfig().fromBuf(buf))
+                buf -> new ConfigUpdatePayload(new McModConfigBuilder().fromBuf(buf).build())
         );
 
         @Override
@@ -64,7 +69,10 @@ public final class McModConfigNetworking {
     }
 
     public static void registerServerHandlers() {
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sendConfig(server, handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register(
+                (handler, sender, server) ->
+                        sendConfig(server, handler.getPlayer(), McMod.getConfig())
+        );
 
         ServerPlayNetworking.registerGlobalReceiver(ConfigUpdatePayload.TYPE, (payload, context) -> {
             ServerPlayer player = context.player();
@@ -72,19 +80,13 @@ public final class McModConfigNetworking {
             String playerName = player.getGameProfile().name();
             if (!canEdit(server, player)) {
                 McMod.LOGGER.warn("Player {} tried to change the config without permission", playerName);
-                sendConfig(server, player);
+                sendConfig(server, player, McMod.getConfig());
                 return;
             }
-            if (!payload.config().isValid(null)) {
-                McMod.LOGGER.warn("Player {} sent an invalid config", playerName);
-                sendConfig(server, player);
-                return;
-            }
-            McMod.CONFIG.copyFrom(payload.config());
-            McMod.LOGGER.info("Config changed by player {}", playerName);
-            McMod.CONFIG_STORE.save();
+            LOGGER.info("Config received from player {}", playerName);
+            McMod.updateConfig(payload.config());
             for (ServerPlayer other : server.getPlayerList().getPlayers()) {
-                sendConfig(server, other);
+                sendConfig(server, other, payload.config());
             }
         });
     }
@@ -93,12 +95,11 @@ public final class McModConfigNetworking {
         return server.isSingleplayerOwner(player.nameAndId()) || player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
     }
 
-    private static void sendConfig(MinecraftServer server, ServerPlayer player) {
+    private static void sendConfig(MinecraftServer server, ServerPlayer player, McModConfig config) {
         if (!ServerPlayNetworking.canSend(player, ConfigSyncPayload.TYPE)) {
             return;
         }
-        McModConfig snapshot = new McModConfig().copyFrom(McMod.CONFIG);
-        ServerPlayNetworking.send(player, new ConfigSyncPayload(snapshot, canEdit(server, player)));
+        ServerPlayNetworking.send(player, new ConfigSyncPayload(config, canEdit(server, player)));
     }
 
 }
